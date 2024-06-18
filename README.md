@@ -1,18 +1,18 @@
 ## Operazioni
 
-• **colora** *(x, y, α, i)*
-Colora Piastrella(x, y) di colore α e intensità i, qualunque sia lo stato di Piastrella(x, y) prima dell’operazione.
+• **colora** *(x, y, α, i)* ✅
+Colora Piastrella(x, y) di colore α e intensità i, qualunque sia lo stato di Piastrella(x, y) prima dell’operazione. 
 
-• **spegni** *(x, y)*
+• **spegni** *(x, y)* ✅
 Spegne Piastrella(x, y). Se Piastrella(x, y) è già spenta, non fa nulla.
 
-• **regola** *(k1, α1, k2, α2, . . . , kn, αn, β)*
+• **regola** *(k1, α1, k2, α2, . . . , kn, αn, β)* ✅
 Definisce la regola di propagazione k1α1 + k2α2 + · · · + kn αn → β e la inserisce in fondo all’elenco delle regole.
 
-• **stato** *(x, y)*
+• **stato** *(x, y)* ✅
 Stampa e restituisce il colore e l’intensità di Piastrella(x, y). Se Piastrella(x, y) è spenta, non stampa nulla.
 
-• **stampa**
+• **stampa** ✅
 Stampa l’elenco delle regole di propagazione, nell’ordine attuale.
 
 • **blocco** *(x, y)*
