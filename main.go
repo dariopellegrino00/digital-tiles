@@ -12,6 +12,13 @@ type Piastrella struct {
 }
 type piano struct {
 	piastrelle *map[[2]int]*Piastrella
+	regole     []Regola
+}
+
+type Regola struct {
+	condizione map[string]int
+	risultato  string
+	consumo    int
 }
 
 /*
@@ -75,7 +82,7 @@ func esegui(p piano, s string) {
 
 func creaPiano() piano {
 	p := make(map[[2]int]*Piastrella)
-	return piano{&p}
+	return piano{&p, []Regola{}}
 }
 
 func main() {
