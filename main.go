@@ -33,26 +33,26 @@ func (r Regola) String() string {
 // restituisce un puntatore alla piastrella in posizione x, y e false (no errore) se accesa,
 // nil e true altrimenti (o 0x0, 0x0 è il puntatore a nil)
 func (p piano) piastrella(x int, y int) (*Piastrella, bool) {
-	ps, e := (p.piastrelle)[pair(x, y)]
+	ps, e := (p.piastrelle)[punto(x, y)]
 	return ps, e
 }
 
-// (utility per inesistenza di un pair in go)
-// restituisce un vettore di 2 posizioni (pair) contenente
+// (utility per inesistenza di un punto in go)
+// restituisce un vettore di 2 posizioni (punto) contenente
 // le coordinate x e y
-func pair(x, y int) [2]int {
+func punto(x, y int) [2]int {
 	return [2]int{x, y}
 }
 
 // colora una piastrella in posizione (x,y) sul piano p
 // con colore alpha e intensità i
 func colora(p piano, x int, y int, alpha string, i int) {
-	(p.piastrelle)[pair(x, y)] = &Piastrella{colore: alpha, intensita: i}
+	(p.piastrelle)[punto(x, y)] = &Piastrella{colore: alpha, intensita: i}
 }
 
 // spegne la piastrella se accesa, non fa niente altrimenti
 func spegni(p piano, x int, y int) {
-	delete(p.piastrelle, pair(x, y))
+	delete(p.piastrelle, punto(x, y))
 }
 
 // stampa in console lo stato di una piastrella nella forma "colore intensità"
@@ -85,6 +85,50 @@ func stampa(p piano) {
 		fmt.Println(*regola)
 	}
 	fmt.Println(")")
+}
+
+//TODO CONTINUTARE E TESTARE
+//TODO creare struttura coda per chiarezza??
+func blocco(p piano, x int, y int) int {
+	start := punto(x, y)
+	_, esiste := p.piastrelle[start]
+	if !esiste {
+		return 0
+	}
+
+	visitati := make(map[[2]int]bool)
+	coda := [][2]int{start}
+	visitati[start] = true
+	sumIntensita := 0
+
+	//TODO dovrebbero servire dopo estrarli e renderli utilizzabili globalmente
+	//magari migliorando astrazione
+	directions := [][2]int{
+		{-1, 0}, {1, 0}, {0, -1}, {0, 1}, // left, right, up, down
+		{-1, -1}, {1, 1}, {-1, 1}, {1, -1}, // diagonals
+	}
+
+	// tot O(n^2) caso peggiore molto raro perchè deve sempre dover risolvere collissioni ad ogni accesso
+	// quindi mediamente O(n)
+	for len(coda) > 0 { //O(n) ripetizioni
+		current := coda[0]
+		coda = coda[1:]
+
+		if tile, ok := p.piastrelle[current]; ok { // O(n) caso peggiore nelle hashtable
+			sumIntensita += tile.intensita
+		}
+
+		for _, dir := range directions { // O(1) sono sempre 8 vicini da controllare
+			vicino := punto(current[0]+dir[0], current[1]+dir[1])
+			_, esiste = p.piastrelle[vicino]
+			if esiste && !visitati[vicino] { //O(n) caso peggiore nelle hashtable
+				visitati[vicino] = true
+				coda = append(coda, vicino)
+			}
+		}
+	}
+
+	return sumIntensita
 }
 
 func esegui(p piano, s string) {
