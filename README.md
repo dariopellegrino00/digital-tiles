@@ -15,7 +15,7 @@ Stampa e restituisce il colore e l’intensità di Piastrella(x, y). Se Piastrel
 • **stampa** ✅
 Stampa l’elenco delle regole di propagazione, nell’ordine attuale.
 
-• **blocco** *(x, y)*
+• **blocco** *(x, y)* ✅
 Calcola le stampa a somma delle intensità delle piastrelle contenute nel blocco di appartenenza di Piastrella(x, y). Se Piastrella(x, y) è spenta, restituisce 0.
 
 • **bloccoOmog** *(x, y)*

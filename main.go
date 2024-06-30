@@ -1,7 +1,9 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
+	"os"
 	"strconv"
 	"strings"
 )
@@ -72,8 +74,8 @@ func regola(p piano, regola string) {
 	tokens := strings.Split(regola, " ")
 	condizione := make(map[string]int)
 	for i := 1; i < len(tokens)-1; i += 2 {
-		// è per forza 1 digit assumendo input corretto
-		condizione[tokens[i+1]] = int(tokens[i][0] - '0')
+		// assumendo input corretto
+		condizione[tokens[i+1]], _ = strconv.Atoi(tokens[i])
 	}
 	*p.regole = append(*(p.regole), &Regola{condizione: condizione, risultato: tokens[0]})
 }
@@ -103,7 +105,7 @@ func blocco(p piano, x int, y int) int {
 
 	//TODO dovrebbero servire dopo estrarli e renderli utilizzabili globalmente
 	//magari migliorando astrazione
-	directions := [][2]int{
+	dirs := [][2]int{
 		{-1, 0}, {1, 0}, {0, -1}, {0, 1}, // left, right, up, down
 		{-1, -1}, {1, 1}, {-1, 1}, {1, -1}, // diagonals
 	}
@@ -114,14 +116,14 @@ func blocco(p piano, x int, y int) int {
 		current := coda[0]
 		coda = coda[1:]
 
-		if tile, ok := p.piastrelle[current]; ok { // O(n) caso peggiore nelle hashtable
-			sumIntensita += tile.intensita
+		if ps, ok := p.piastrelle[current]; ok { // O(n) caso peggiore ricerca in hashtable
+			sumIntensita += ps.intensita
 		}
 
-		for _, dir := range directions { // O(1) sono sempre 8 vicini da controllare
+		for _, dir := range dirs { // O(1) sono sempre 8 (possibili) vicini da controllare
 			vicino := punto(current[0]+dir[0], current[1]+dir[1])
-			_, esiste = p.piastrelle[vicino]
-			if esiste && !visitati[vicino] { //O(n) caso peggiore nelle hashtable
+			_, esiste = p.piastrelle[vicino] //O(n) caso peggiore
+			if esiste && !visitati[vicino] { //O(n) caso peggiore
 				visitati[vicino] = true
 				coda = append(coda, vicino)
 			}
@@ -136,23 +138,27 @@ func esegui(p piano, s string) {
 	comando := tokens[0]
 	switch comando {
 	case "C":
-		x, _ := strconv.Atoi(tokens[0])
-		y, _ := strconv.Atoi(tokens[1])
+		x, _ := strconv.Atoi(tokens[1])
+		y, _ := strconv.Atoi(tokens[2])
 		alpha := tokens[3]
 		i, _ := strconv.Atoi(tokens[4])
 		colora(p, x, y, alpha, i)
 	case "S":
-		x, _ := strconv.Atoi(tokens[0])
-		y, _ := strconv.Atoi(tokens[1])
+		x, _ := strconv.Atoi(tokens[1])
+		y, _ := strconv.Atoi(tokens[2])
 		spegni(p, x, y)
 	case "?":
-		x, _ := strconv.Atoi(tokens[0])
-		y, _ := strconv.Atoi(tokens[1])
+		x, _ := strconv.Atoi(tokens[1])
+		y, _ := strconv.Atoi(tokens[2])
 		stato(p, x, y)
 	case "r":
 		regola(p, s[2:])
 	case "s":
 		stampa(p)
+	case "b":
+		x, _ := strconv.Atoi(tokens[1])
+		y, _ := strconv.Atoi(tokens[2])
+		println(blocco(p, x, y))
 	}
 }
 
@@ -164,12 +170,16 @@ func creaPiano() piano {
 
 func main() {
 	p := creaPiano()
-	esegui(p, "C 1 2 r 4")
-	esegui(p, "C 0 2 g 4")
-	esegui(p, "C 1 1 b 5")
-	esegui(p, "? 0 2")
-	esegui(p, "? 1 1")
-	esegui(p, "r a 1 a 2 b 1 c")
-	esegui(p, "r b 1 a 3 c")
-	esegui(p, "s")
+	file, err := os.Open("inputs/example1.txt")
+
+	if err != nil {
+		panic(err.Error())
+	}
+
+	sc := bufio.NewScanner(file)
+
+	for sc.Scan() {
+		linea := sc.Text()
+		esegui(p, linea)
+	}
 }
