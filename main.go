@@ -34,7 +34,7 @@ func (r Regola) String() string {
 // (utility per questione di leggibilità)
 // restituisce un puntatore alla piastrella in posizione x, y e false (no errore) se accesa,
 // nil e true altrimenti (o 0x0, 0x0 è il puntatore a nil)
-func (p piano) piastrella(x int, y int) (*Piastrella, bool) {
+func (p piano) piastrella(x, y int) (*Piastrella, bool) {
 	ps, e := (p.piastrelle)[punto(x, y)]
 	return ps, e
 }
@@ -53,14 +53,14 @@ func colora(p piano, x int, y int, alpha string, i int) {
 }
 
 // spegne la piastrella se accesa, non fa niente altrimenti
-func spegni(p piano, x int, y int) {
+func spegni(p piano, x, y int) {
 	delete(p.piastrelle, punto(x, y))
 }
 
 // stampa in console lo stato di una piastrella nella forma "colore intensità"
 // e restituisce i due valore sottoforma di stringa e intero
 // non fa niente se la piastrella è spenta e restituisce una stringa vuota e zero
-func stato(p piano, x int, y int) (string, int) {
+func stato(p piano, x, y int) (string, int) {
 	piastrella, err := p.piastrella(x, y)
 	if err {
 		fmt.Printf("%s %d\n", piastrella.colore, piastrella.intensita)
@@ -89,21 +89,22 @@ func stampa(p piano) {
 	fmt.Println(")")
 }
 
-//TODO CONTINUTARE E TESTARE
-//TODO creare struttura coda per chiarezza??
-func blocco(p piano, x int, y int) int {
+//TODO creare struttura coda per chiarezza?? o se serve in altro successivamente
+//funzione Helper per BFS dei blocchi
+func bfsBlocco(p piano, x, y int, checkColore bool) int {
 	start := punto(x, y)
-	_, esiste := p.piastrelle[start]
+	pstart, esiste := p.piastrelle[start]
 	if !esiste {
 		return 0
 	}
 
+	colore := pstart.colore
 	visitati := make(map[[2]int]bool)
 	coda := [][2]int{start}
 	visitati[start] = true
 	sumIntensita := 0
 
-	//TODO dovrebbero servire dopo estrarli e renderli utilizzabili globalmente
+	//TODO potrebbero servire dopo estrarli e renderli utilizzabili globalmente
 	//magari migliorando astrazione
 	dirs := [][2]int{
 		{-1, 0}, {1, 0}, {0, -1}, {0, 1}, // left, right, up, down
@@ -122,8 +123,8 @@ func blocco(p piano, x int, y int) int {
 
 		for _, dir := range dirs { // O(1) sono sempre 8 (possibili) vicini da controllare
 			vicino := punto(current[0]+dir[0], current[1]+dir[1])
-			_, esiste = p.piastrelle[vicino] //O(n) caso peggiore
-			if esiste && !visitati[vicino] { //O(n) caso peggiore
+			ps, esiste := p.piastrelle[vicino]                                        //O(n) caso peggiore molto raro
+			if esiste && (!checkColore || ps.colore == colore) && !visitati[vicino] { //O(n) caso peggiore molto raro
 				visitati[vicino] = true
 				coda = append(coda, vicino)
 			}
@@ -133,50 +134,16 @@ func blocco(p piano, x int, y int) int {
 	return sumIntensita
 }
 
-// TODO REFACTORING VISITA BFS
-// TODO REFACTORING DIREZIONI
-func bloccoOmog(p piano, x int, y int) int {
-	start := punto(x, y)
+// restituisce l'intensità il blocco a cui appartiene la pistrella di posizione x,y
+// di posizione x,y se accessa, 0 se spenta
+func blocco(p piano, x, y int) int {
+	return bfsBlocco(p, x, y, false)
+}
 
-	s, esiste := p.piastrelle[start]
-	if !esiste {
-		return 0
-	}
-	colore := s.colore
-	visitati := make(map[[2]int]bool)
-	coda := [][2]int{start}
-	visitati[start] = true
-	sumIntensita := 0
-
-	//TODO dovrebbero servire dopo estrarli e renderli utilizzabili globalmente
-	//magari migliorando astrazione
-	dirs := [][2]int{
-		{-1, 0}, {1, 0}, {0, -1}, {0, 1}, // left, right, up, down
-		{-1, -1}, {1, 1}, {-1, 1}, {1, -1}, // diagonals
-	}
-
-	// tot O(n^2) caso peggiore molto raro perchè deve sempre dover risolvere collissioni ad ogni accesso
-	// quindi mediamente O(n)
-	for len(coda) > 0 { //O(n) ripetizioni
-		current := coda[0]
-		coda = coda[1:]
-
-		if ps, ok := p.piastrelle[current]; ok { // O(n) caso peggiore ricerca in hashtable
-			sumIntensita += ps.intensita
-		}
-
-		for _, dir := range dirs { // O(1) sono sempre 8 (possibili) vicini da controllare
-			vicino := punto(current[0]+dir[0], current[1]+dir[1])
-			ps, esiste := p.piastrelle[vicino] //O(n) caso peggiore
-			// ragionevole che la stringa non sia troppo grande da confrontare (caso peggiore N = (len(colore), O(N)))
-			if esiste && ps.colore == colore && !visitati[vicino] { //O(n) caso peggiore
-				visitati[vicino] = true
-				coda = append(coda, vicino)
-			}
-		}
-	}
-
-	return sumIntensita
+// restituisce l'intensità del blocco omogeneo a cui appartiene la pistrella
+// di posizione x,y se accessa, 0 se spenta
+func bloccoOmog(p piano, x, y int) int {
+	return bfsBlocco(p, x, y, true)
 }
 
 func esegui(p piano, s string) {
