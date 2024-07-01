@@ -133,6 +133,52 @@ func blocco(p piano, x int, y int) int {
 	return sumIntensita
 }
 
+// TODO REFACTORING VISITA BFS
+// TODO REFACTORING DIREZIONI
+func bloccoOmog(p piano, x int, y int) int {
+	start := punto(x, y)
+
+	s, esiste := p.piastrelle[start]
+	if !esiste {
+		return 0
+	}
+	colore := s.colore
+	visitati := make(map[[2]int]bool)
+	coda := [][2]int{start}
+	visitati[start] = true
+	sumIntensita := 0
+
+	//TODO dovrebbero servire dopo estrarli e renderli utilizzabili globalmente
+	//magari migliorando astrazione
+	dirs := [][2]int{
+		{-1, 0}, {1, 0}, {0, -1}, {0, 1}, // left, right, up, down
+		{-1, -1}, {1, 1}, {-1, 1}, {1, -1}, // diagonals
+	}
+
+	// tot O(n^2) caso peggiore molto raro perchè deve sempre dover risolvere collissioni ad ogni accesso
+	// quindi mediamente O(n)
+	for len(coda) > 0 { //O(n) ripetizioni
+		current := coda[0]
+		coda = coda[1:]
+
+		if ps, ok := p.piastrelle[current]; ok { // O(n) caso peggiore ricerca in hashtable
+			sumIntensita += ps.intensita
+		}
+
+		for _, dir := range dirs { // O(1) sono sempre 8 (possibili) vicini da controllare
+			vicino := punto(current[0]+dir[0], current[1]+dir[1])
+			ps, esiste := p.piastrelle[vicino] //O(n) caso peggiore
+			// ragionevole che la stringa non sia troppo grande da confrontare (caso peggiore N = (len(colore), O(N)))
+			if esiste && ps.colore == colore && !visitati[vicino] { //O(n) caso peggiore
+				visitati[vicino] = true
+				coda = append(coda, vicino)
+			}
+		}
+	}
+
+	return sumIntensita
+}
+
 func esegui(p piano, s string) {
 	tokens := strings.Split(s, " ")
 	comando := tokens[0]
@@ -159,6 +205,10 @@ func esegui(p piano, s string) {
 		x, _ := strconv.Atoi(tokens[1])
 		y, _ := strconv.Atoi(tokens[2])
 		println(blocco(p, x, y))
+	case "B":
+		x, _ := strconv.Atoi(tokens[1])
+		y, _ := strconv.Atoi(tokens[2])
+		println(bloccoOmog(p, x, y))
 	}
 }
 
