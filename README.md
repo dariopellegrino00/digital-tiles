@@ -18,10 +18,10 @@ Stampa l’elenco delle regole di propagazione, nell’ordine attuale.
 • **blocco** *(x, y)* ✅
 Calcola le stampa a somma delle intensità delle piastrelle contenute nel blocco di appartenenza di Piastrella(x, y). Se Piastrella(x, y) è spenta, restituisce 0.
 
-• **bloccoOmog** *(x, y)*
+• **bloccoOmog** *(x, y)* ✅
 Calcola e stampa la somma delle intensità delle piastrelle contenute nel blocco omogeneo di appartenenza di Piastrella(x, y). Se Piastrella(x, y) `e spenta, restituisce 0.
 
-• **propaga** *(x, y)*
+• **propaga** *(x, y)* ✅
 Applica a Piastrella(x, y) la prima regola di propagazione applicabile dell’elenco, ricolorando la piastrella. Se nessuna regola è applicabile, non viene eseguita alcuna operazione
 
 • **propagaBlocco** *(x, y)*

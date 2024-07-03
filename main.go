@@ -31,6 +31,16 @@ func (r Regola) String() string {
 	return s
 }
 
+// restituisce true se la regola è applicabile false altrimenti
+func (r Regola) applicabile(colori map[string]int) bool {
+	for colore, num := range r.condizione {
+		if colori[colore] < num {
+			return false
+		}
+	}
+	return true
+}
+
 // (utility per questione di leggibilità)
 // restituisce un puntatore alla piastrella in posizione x, y e false (no errore) se accesa,
 // nil e true altrimenti (o 0x0, 0x0 è il puntatore a nil)
@@ -146,6 +156,40 @@ func bloccoOmog(p piano, x, y int) int {
 	return bfsBlocco(p, x, y, true)
 }
 
+// propaga la prima formula compatibile nella piastrella x y
+func propaga(p piano, x, y int) {
+	//TODO potrebbero servire dopo estrarli e renderli utilizzabili globalmente
+	//magari migliorando astrazione
+	dirs := [][2]int{
+		{-1, 0}, {1, 0}, {0, -1}, {0, 1}, // left, right, up, down
+		{-1, -1}, {1, 1}, {-1, 1}, {1, -1}, // diagonals
+	}
+
+	for _, r := range *p.regole { // O(len(r))
+		coloriVicini := make(map[string]int)
+
+		for _, dir := range dirs {
+			vicina, ok := p.piastrelle[punto(x+dir[0], y+dir[1])]
+			if ok {
+				coloriVicini[vicina.colore] += 1
+			}
+		}
+
+		if r.applicabile(coloriVicini) {
+			ps, accesa := p.piastrelle[punto(x, y)]
+			// applica regola TODO funzione applica regola?
+			if !accesa {
+				colora(p, x, y, r.risultato, 1)
+			} else {
+				ps.colore = r.risultato
+			}
+			r.consumo++
+			return
+		}
+	}
+
+}
+
 func esegui(p piano, s string) {
 	tokens := strings.Split(s, " ")
 	comando := tokens[0]
@@ -176,6 +220,10 @@ func esegui(p piano, s string) {
 		x, _ := strconv.Atoi(tokens[1])
 		y, _ := strconv.Atoi(tokens[2])
 		println(bloccoOmog(p, x, y))
+	case "p":
+		x, _ := strconv.Atoi(tokens[1])
+		y, _ := strconv.Atoi(tokens[2])
+		propaga(p, x, y)
 	}
 }
 
