@@ -23,6 +23,12 @@ type Regola struct {
 	consumo    int
 }
 
+// le possibili direzioni prendibili a partire da una piastrella (o per raggiungere i possibili vicini)
+var dirs = [][2]int{
+	{-1, 0}, {1, 0}, {0, -1}, {0, 1}, // destra, sinistra, sopra, giù
+	{-1, -1}, {1, 1}, {-1, 1}, {1, -1}, // diagonali
+}
+
 func (r Regola) String() string {
 	s := r.risultato + ": "
 	for a, k := range r.condizione {
@@ -100,26 +106,20 @@ func stampa(p piano) {
 }
 
 //TODO creare struttura coda per chiarezza?? o se serve in altro successivamente
-//funzione Helper per BFS dei blocchi
-func bfsBlocco(p piano, x, y int, checkColore bool) int {
+//funzione Helper per fare la BFS che veniva riutilizzata spesso diminuendo di molto il codice ripetuto,
+//non cambia a livello di stime asintottiche rielaborare la visita
+// tempo ammortizzato O(n) con n = #piastrelle del blocco
+func bfsBlocco(p piano, x, y int, checkColore bool) [][2]int {
 	start := punto(x, y)
 	pstart, esiste := p.piastrelle[start]
+	visita := make([][2]int, 0)
 	if !esiste {
-		return 0
+		return visita
 	}
 
-	colore := pstart.colore
 	visitati := make(map[[2]int]bool)
 	coda := [][2]int{start}
 	visitati[start] = true
-	sumIntensita := 0
-
-	//TODO potrebbero servire dopo estrarli e renderli utilizzabili globalmente
-	//magari migliorando astrazione
-	dirs := [][2]int{
-		{-1, 0}, {1, 0}, {0, -1}, {0, 1}, // left, right, up, down
-		{-1, -1}, {1, 1}, {-1, 1}, {1, -1}, // diagonals
-	}
 
 	// tot O(n^2) caso peggiore molto raro perchè deve sempre dover risolvere collissioni ad ogni accesso
 	// quindi mediamente O(n)
@@ -127,44 +127,47 @@ func bfsBlocco(p piano, x, y int, checkColore bool) int {
 		current := coda[0]
 		coda = coda[1:]
 
-		if ps, ok := p.piastrelle[current]; ok { // O(n) caso peggiore ricerca in hashtable
-			sumIntensita += ps.intensita
-		}
-
 		for _, dir := range dirs { // O(1) sono sempre 8 (possibili) vicini da controllare
 			vicino := punto(current[0]+dir[0], current[1]+dir[1])
-			ps, esiste := p.piastrelle[vicino]                                        //O(n) caso peggiore molto raro
-			if esiste && (!checkColore || ps.colore == colore) && !visitati[vicino] { //O(n) caso peggiore molto raro
+			ps, esiste := p.piastrelle[vicino]                                               //O(n) caso peggiore molto raro ammortizzato a O(1)
+			if esiste && (!checkColore || ps.colore == pstart.colore) && !visitati[vicino] { //O(n) caso peggiore molto raro ammortizzato a O(1)
 				visitati[vicino] = true
 				coda = append(coda, vicino)
 			}
 		}
 	}
 
-	return sumIntensita
+	for v, _ := range visitati {
+		visita = append(visita, v)
+	}
+
+	return visita
+}
+
+// helper per calcoli dei blocchi riducendo ridondanza
+func intensitaBlocco(p piano, blocco [][2]int) int {
+	intensita := 0
+	for _, pos := range blocco {
+		intensita += p.piastrelle[pos].intensita
+		//non controllo l'ok, se l'ha visitata prima la piastrelle deve per forza esserci
+	}
+	return intensita
 }
 
 // restituisce l'intensità il blocco a cui appartiene la pistrella di posizione x,y
 // di posizione x,y se accessa, 0 se spenta
 func blocco(p piano, x, y int) int {
-	return bfsBlocco(p, x, y, false)
+	return intensitaBlocco(p, bfsBlocco(p, x, y, false))
 }
 
 // restituisce l'intensità del blocco omogeneo a cui appartiene la pistrella
 // di posizione x,y se accessa, 0 se spenta
 func bloccoOmog(p piano, x, y int) int {
-	return bfsBlocco(p, x, y, true)
+	return intensitaBlocco(p, bfsBlocco(p, x, y, true))
 }
 
-// propaga la prima formula compatibile nella piastrella x y
+// propaga la prima formula compatibile nella piastrella x y, tempo O(len(r))
 func propaga(p piano, x, y int) {
-	//TODO potrebbero servire dopo estrarli e renderli utilizzabili globalmente
-	//magari migliorando astrazione
-	dirs := [][2]int{
-		{-1, 0}, {1, 0}, {0, -1}, {0, 1}, // left, right, up, down
-		{-1, -1}, {1, 1}, {-1, 1}, {1, -1}, // diagonals
-	}
-
 	for _, r := range *p.regole { // O(len(r))
 		coloriVicini := make(map[string]int)
 
