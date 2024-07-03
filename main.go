@@ -51,7 +51,7 @@ func (r Regola) applicabile(colori map[string]int) bool {
 // restituisce un puntatore alla piastrella in posizione x, y e false (no errore) se accesa,
 // nil e true altrimenti (o 0x0, 0x0 è il puntatore a nil)
 func (p piano) piastrella(x, y int) (*Piastrella, bool) {
-	ps, e := (p.piastrelle)[punto(x, y)]
+	ps, e := p.piastrelle[punto(x, y)]
 	return ps, e
 }
 
@@ -65,7 +65,7 @@ func punto(x, y int) [2]int {
 // colora una piastrella in posizione (x,y) sul piano p
 // con colore alpha e intensità i
 func colora(p piano, x int, y int, alpha string, i int) {
-	(p.piastrelle)[punto(x, y)] = &Piastrella{colore: alpha, intensita: i}
+	p.piastrelle[punto(x, y)] = &Piastrella{colore: alpha, intensita: i}
 }
 
 // spegne la piastrella se accesa, non fa niente altrimenti
@@ -193,6 +193,32 @@ func propaga(p piano, x, y int) {
 
 }
 
+// TODO: valutare se è il modo più efficiente
+// propaga le regole nel blocco di appartenenda di piatrella in posizione (x, y), tempo O(n*m)
+func propagaBlocco(p piano, x, y int) {
+	blocco := bfsBlocco(p, x, y, false) // O(n)
+	if len(blocco) == 0 {
+		return
+	}
+
+	supporto := creaPiano()
+	supporto.regole = p.regole
+
+	for _, pos := range blocco { // O(n)
+		pias, _ := p.piastrelle[pos]                                        // non può non trovarle più se l'ha trovata sopra nella bfs
+		supporto.piastrelle[pos] = &Piastrella{pias.colore, pias.intensita} // non devo passare il puntatore
+	}
+
+	for _, pos := range blocco { // O(n*m)
+		//piano, x, y
+		propaga(supporto, pos[0], pos[1]) // se m = len(r)
+	}
+
+	for pos, pias := range supporto.piastrelle { // O(n)
+		p.piastrelle[pos] = pias
+	}
+}
+
 func esegui(p piano, s string) {
 	tokens := strings.Split(s, " ")
 	comando := tokens[0]
@@ -227,6 +253,10 @@ func esegui(p piano, s string) {
 		x, _ := strconv.Atoi(tokens[1])
 		y, _ := strconv.Atoi(tokens[2])
 		propaga(p, x, y)
+	case "P":
+		x, _ := strconv.Atoi(tokens[1])
+		y, _ := strconv.Atoi(tokens[2])
+		propagaBlocco(p, x, y)
 	}
 }
 
@@ -249,5 +279,9 @@ func main() {
 	for sc.Scan() {
 		linea := sc.Text()
 		esegui(p, linea)
+	}
+	// TODO: rimuovi
+	for _, r := range *p.regole {
+		fmt.Println(*r, r.consumo)
 	}
 }
