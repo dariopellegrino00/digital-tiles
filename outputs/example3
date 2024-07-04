@@ -1,0 +1,9 @@
+rosso 5
+blu 6
+(
+giallo: 2 blu 1 rosso 
+verde: 1 blu 2 rosso 
+blu: 1 rosso 1 giallo 
+)
+20
+14

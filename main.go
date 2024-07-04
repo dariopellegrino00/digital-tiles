@@ -375,14 +375,34 @@ func creaPiano() piano {
 	return piano{p, &r}
 }
 
-func main() {
+func eseguiFile() {
+
+	file, err := os.Open(os.Args[1:][0])
+	if err != nil {
+		panic(err.Error())
+	}
 
 	p := creaPiano()
-	sc := bufio.NewScanner(os.Stdin)
+	sc := bufio.NewScanner(file)
 
 	for sc.Scan() {
 		linea := sc.Text()
 		esegui(p, linea)
 	}
 
+}
+
+func main() {
+	// TODO: spiegazione in relazione
+	if len(os.Args) > 1 {
+		eseguiFile()
+	} else {
+		p := creaPiano()
+		sc := bufio.NewScanner(os.Stdin)
+
+		for sc.Scan() {
+			linea := sc.Text()
+			esegui(p, linea)
+		}
+	}
 }
