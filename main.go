@@ -152,7 +152,7 @@ func bfsBlocco(p piano, x, y int, checkColore bool) [][2]int {
 		}
 	}
 
-	for v, _ := range visitati {
+	for v := range visitati {
 		visita = append(visita, v)
 	}
 
@@ -364,6 +364,8 @@ func esegui(p piano, s string) {
 		x2, _ := strconv.Atoi(tokens[3])
 		y2, _ := strconv.Atoi(tokens[4])
 		lung(p, x1, y1, x2, y2)
+	case "q":
+		os.Exit(0)
 	}
 }
 
