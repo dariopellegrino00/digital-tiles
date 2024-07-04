@@ -32,14 +32,8 @@ var dirs = [][2]int{
 
 // TODO: refactoring con funzione?
 var spostamento = map[string][2]int{ // simil funzione da punto cardinale a simil versore
-	"NN": {0, 1},
-	"NE": {1, 1},
-	"EE": {1, 0},
-	"SE": {1, -1},
-	"SS": {0, -1},
-	"SO": {-1, -1},
-	"OO": {-1, 0},
-	"NO": {-1, 1},
+	"NN": {0, 1}, "NE": {1, 1}, "EE": {1, 0}, "SE": {1, -1},
+	"SS": {0, -1}, "SO": {-1, -1}, "OO": {-1, 0}, "NO": {-1, 1},
 }
 
 func (p Piastrella) String() string {
@@ -49,7 +43,7 @@ func (p Piastrella) String() string {
 func (r Regola) String() string {
 	s := r.risultato + ": "
 	for a, k := range r.condizione {
-		s += fmt.Sprint(k) + a + " "
+		s += fmt.Sprintf("%d %s ", k, a)
 	}
 	return s
 }
@@ -82,7 +76,11 @@ func punto(x, y int) [2]int {
 // colora una piastrella in posizione (x,y) sul piano p
 // con colore alpha e intensità i
 func colora(p piano, x int, y int, alpha string, i int) {
-	p.piastrelle[punto(x, y)] = &Piastrella{colore: alpha, intensita: i}
+	if i == 0 {
+		spegni(p, x, y)
+	} else {
+		p.piastrelle[punto(x, y)] = &Piastrella{colore: alpha, intensita: i}
+	}
 }
 
 // spegne la piastrella se accesa, non fa niente altrimenti
@@ -278,6 +276,8 @@ func pista(p piano, x, y int, s string) {
 // verso gli archi v che esplora successivamente
 // restituisce la pista di lunghezza minima tra i due (numero archi)
 // TODO: tempo O(n + m) da calcolare (meglio di djkstra O(m log n))
+// la lunghezza della pista è data da il numero di piastrelle che la compongono
+// una pista da x y a x y è lunga 1 chiaramente
 func lung(p piano, x1 int, y1 int, x2 int, y2 int) int {
 	start := punto(x1, y1)
 	goal := punto(x2, y2)
@@ -288,13 +288,13 @@ func lung(p piano, x1 int, y1 int, x2 int, y2 int) int {
 		return -1
 	}
 
-	visited := make(map[[2]int]bool)
-	queue := [][3]int{{x1, y1, 0}}
-	visited[start] = true
+	visitati := make(map[[2]int]bool)
+	coda := [][3]int{{x1, y1, 1}}
+	visitati[start] = true
 
-	for len(queue) > 0 {
-		current := queue[0]
-		queue = queue[1:]
+	for len(coda) > 0 {
+		current := coda[0]
+		coda = coda[1:]
 
 		if punto(current[0], current[1]) == goal {
 			fmt.Println(current[2])
@@ -302,11 +302,11 @@ func lung(p piano, x1 int, y1 int, x2 int, y2 int) int {
 		}
 
 		for _, dir := range dirs {
-			neighbor := punto(current[0]+dir[0], current[1]+dir[1])
-			_, exists := p.piastrelle[neighbor]
-			if exists && !visited[neighbor] {
-				visited[neighbor] = true
-				queue = append(queue, [3]int{neighbor[0], neighbor[1], current[2] + 1})
+			vicino := punto(current[0]+dir[0], current[1]+dir[1])
+			_, esiste := p.piastrelle[vicino]
+			if esiste && !visitati[vicino] {
+				visitati[vicino] = true
+				coda = append(coda, [3]int{vicino[0], vicino[1], current[2] + 1})
 			}
 		}
 	}
@@ -374,17 +374,23 @@ func creaPiano() piano {
 }
 
 func main() {
-	p := creaPiano()
-	file, err := os.Open("inputs/example1")
-
-	if err != nil {
-		panic(err.Error())
+	if len(os.Args) < 2 {
+		panic("nessuna directory contenente un file di input inserita")
 	}
 
-	sc := bufio.NewScanner(file)
+	for _, nomeFile := range os.Args[1:] {
+		file, err := os.Open(nomeFile)
+		if err != nil {
+			panic(err.Error())
+		}
 
-	for sc.Scan() {
-		linea := sc.Text()
-		esegui(p, linea)
+		p := creaPiano()
+		sc := bufio.NewScanner(file)
+
+		for sc.Scan() {
+			linea := sc.Text()
+			esegui(p, linea)
+		}
 	}
+
 }
