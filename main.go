@@ -376,23 +376,13 @@ func creaPiano() piano {
 }
 
 func main() {
-	if len(os.Args) < 2 {
-		panic("nessuna directory contenente un file di input inserita")
-	}
 
-	for _, nomeFile := range os.Args[1:] {
-		file, err := os.Open(nomeFile)
-		if err != nil {
-			panic(err.Error())
-		}
+	p := creaPiano()
+	sc := bufio.NewScanner(os.Stdin)
 
-		p := creaPiano()
-		sc := bufio.NewScanner(file)
-
-		for sc.Scan() {
-			linea := sc.Text()
-			esegui(p, linea)
-		}
+	for sc.Scan() {
+		linea := sc.Text()
+		esegui(p, linea)
 	}
 
 }
