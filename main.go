@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -219,6 +220,15 @@ func propagaBlocco(p piano, x, y int) {
 	}
 }
 
+/*
+Funzione di lib:
+utilizza un algoritmo mergesort modificato per funzionare in loco, nel complesso, il suo caso peggiore
+fa O(n log n) confronti. il fatto che utlizza mergesort lo rende stabile ed era quello che ci serviva.
+*/
+func ordina(p piano) {
+	sort.SliceStable(*p.regole, func(i, j int) bool { return (*p.regole)[i].consumo < (*p.regole)[j].consumo })
+}
+
 func esegui(p piano, s string) {
 	tokens := strings.Split(s, " ")
 	comando := tokens[0]
@@ -257,6 +267,8 @@ func esegui(p piano, s string) {
 		x, _ := strconv.Atoi(tokens[1])
 		y, _ := strconv.Atoi(tokens[2])
 		propagaBlocco(p, x, y)
+	case "o":
+		ordina(p)
 	}
 }
 
