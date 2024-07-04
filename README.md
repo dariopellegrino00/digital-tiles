@@ -24,20 +24,14 @@ Calcola e stampa la somma delle intensità delle piastrelle contenute nel blocco
 • **propaga** *(x, y)* ✅
 Applica a Piastrella(x, y) la prima regola di propagazione applicabile dell’elenco, ricolorando la piastrella. Se nessuna regola è applicabile, non viene eseguita alcuna operazione
 
-• **propagaBlocco** *(x, y)*
+• **propagaBlocco** *(x, y)* ✅
 Propaga il colore sul blocco di appartenenza di Piastrella(x, y).
 
-• **ordina**
+• **ordina** ✅
 Ordina l’elenco delle regole di propagazione in base al consumo delle regole stesse: la regola con consumo maggiore diventa l’ultima dell’elenco. Se due regole hanno consumo uguale mantengono il loro ordine relativo.
 
-• **pista** *(x, y, s)*
+• **pista** *(x, y, s)* ✅
 Stampa la pista che parte da Piastrella(x, y) e segue la sequenza di direzioni s, se tale pista è definita. Altrimenti non stampa nulla.
 
-• **lung** *(x1, y1, x2, y2)*
+• **lung** *(x1, y1, x2, y2)* ✅
 Determina la lunghezza della pista più breve che parte da Piastrella(x1, y1) e arriva in Piastrella(x2, y2). Altrimenti non stampa nulla.
-
-• **intensità** *(x1, y1, x2, y2)*
-Determina l’intensità minima tra le intensità di tutte le piste che partono da Piastrella(x1, y1) e arrivano in Piastrella(x2, y2). Se non vi è alcuna pista tra queste due piastrelle, non stampa nulla.
-
-• **perimetro** *(x, y)*
-Calcola la lunghezza del perimetro del blocco di appartenenza della piastrella in (x, y).

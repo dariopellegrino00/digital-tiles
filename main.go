@@ -30,6 +30,22 @@ var dirs = [][2]int{
 	{-1, -1}, {1, 1}, {-1, 1}, {1, -1}, // diagonali
 }
 
+// TODO: refactoring con funzione?
+var spostamento = map[string][2]int{ // simil funzione da punto cardinale a simil versore
+	"NN": {0, 1},
+	"NE": {1, 1},
+	"EE": {1, 0},
+	"SE": {1, -1},
+	"SS": {0, -1},
+	"SO": {-1, -1},
+	"OO": {-1, 0},
+	"NO": {-1, 1},
+}
+
+func (p Piastrella) String() string {
+	return fmt.Sprintf("%s %d\n", p.colore, p.intensita)
+}
+
 func (r Regola) String() string {
 	s := r.risultato + ": "
 	for a, k := range r.condizione {
@@ -78,9 +94,9 @@ func spegni(p piano, x, y int) {
 // e restituisce i due valore sottoforma di stringa e intero
 // non fa niente se la piastrella è spenta e restituisce una stringa vuota e zero
 func stato(p piano, x, y int) (string, int) {
-	piastrella, err := p.piastrella(x, y)
-	if err {
-		fmt.Printf("%s %d\n", piastrella.colore, piastrella.intensita)
+	piastrella, esiste := p.piastrella(x, y)
+	if esiste {
+		fmt.Print(piastrella)
 		return piastrella.colore, piastrella.intensita
 	}
 	return "", 0
@@ -229,6 +245,75 @@ func ordina(p piano) {
 	sort.SliceStable(*p.regole, func(i, j int) bool { return (*p.regole)[i].consumo < (*p.regole)[j].consumo })
 }
 
+func pista(p piano, x, y int, s string) {
+	seq := strings.Split(s, ",")
+	_, ok := p.piastrelle[punto(x, y)]
+	if !ok {
+		return
+	}
+
+	pista := [][2]int{punto(x, y)}
+	next := [2]int{x, y}
+
+	for _, d := range seq {
+		pos, _ := spostamento[d] // assumendo input corretto
+		next[0] = next[0] + pos[0]
+		next[1] = next[1] + pos[1]
+		_, ok = p.piastrelle[next]
+		if !ok {
+			return
+		}
+		pista = append(pista, pos)
+	}
+
+	fmt.Println("(")
+	for _, v := range pista {
+		fmt.Print(v[0], v[1], p.piastrelle[v])
+	}
+	fmt.Println(")")
+}
+
+// utilizza bfs perchè bfs con pesi tutti uguali sugli archi (tutti 1)
+// a partire dal primo vertice s trova sempre il percorso minimo
+// verso gli archi v che esplora successivamente
+// restituisce la pista di lunghezza minima tra i due (numero archi)
+// TODO: tempo O(n + m) da calcolare (meglio di djkstra O(m log n))
+func lung(p piano, x1 int, y1 int, x2 int, y2 int) int {
+	start := punto(x1, y1)
+	goal := punto(x2, y2)
+
+	_, esiste1 := p.piastrelle[start]
+	_, esiste2 := p.piastrelle[goal]
+	if !esiste1 || !esiste2 {
+		return -1
+	}
+
+	visited := make(map[[2]int]bool)
+	queue := [][3]int{{x1, y1, 0}}
+	visited[start] = true
+
+	for len(queue) > 0 {
+		current := queue[0]
+		queue = queue[1:]
+
+		if punto(current[0], current[1]) == goal {
+			fmt.Println(current[2])
+			return current[2]
+		}
+
+		for _, dir := range dirs {
+			neighbor := punto(current[0]+dir[0], current[1]+dir[1])
+			_, exists := p.piastrelle[neighbor]
+			if exists && !visited[neighbor] {
+				visited[neighbor] = true
+				queue = append(queue, [3]int{neighbor[0], neighbor[1], current[2] + 1})
+			}
+		}
+	}
+
+	return -1
+}
+
 func esegui(p piano, s string) {
 	tokens := strings.Split(s, " ")
 	comando := tokens[0]
@@ -269,6 +354,16 @@ func esegui(p piano, s string) {
 		propagaBlocco(p, x, y)
 	case "o":
 		ordina(p)
+	case "t":
+		x, _ := strconv.Atoi(tokens[1])
+		y, _ := strconv.Atoi(tokens[2])
+		pista(p, x, y, tokens[3])
+	case "L":
+		x1, _ := strconv.Atoi(tokens[1])
+		y1, _ := strconv.Atoi(tokens[2])
+		x2, _ := strconv.Atoi(tokens[3])
+		y2, _ := strconv.Atoi(tokens[4])
+		lung(p, x1, y1, x2, y2)
 	}
 }
 
@@ -280,7 +375,7 @@ func creaPiano() piano {
 
 func main() {
 	p := creaPiano()
-	file, err := os.Open("inputs/example1.txt")
+	file, err := os.Open("inputs/example1")
 
 	if err != nil {
 		panic(err.Error())
@@ -291,9 +386,5 @@ func main() {
 	for sc.Scan() {
 		linea := sc.Text()
 		esegui(p, linea)
-	}
-	// TODO: rimuovi
-	for _, r := range *p.regole {
-		fmt.Println(*r, r.consumo)
 	}
 }
