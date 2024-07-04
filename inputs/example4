@@ -1,0 +1,35 @@
+C 0 0 rosso 5
+C 0 1000 rosso 3
+C 1000 0 rosso 2
+C 1000 1000 rosso 4
+C 5000 5000 blu 6
+C 5001 5000 blu 1
+C 5000 5001 blu 2
+C 5001 5001 blu 3
+C 10000 10000 verde 8
+C 10001 10000 verde 3
+C 10000 10001 verde 5
+C 10001 10001 verde 7
+C 214748364 219474836 verde 7
+r rosso 3 verde
+r giallo 1 rosso 2 blu
+r verde 2 rosso 1 blu
+r blu 1 rosso 1 giallo
+r arancio 1 verde 2 blu
+? 0 0
+? 1000 1000
+? 5000 5000
+? 10001 10001
+s
+b 0 0
+B 10000 10001
+p 0 0
+p 5000 5000
+P 0 0
+P 5000 5000
+p 10000 10000
+B 10000 10001
+? 10000 10000
+o
+s
+q

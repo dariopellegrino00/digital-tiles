@@ -216,21 +216,32 @@ func propagaBlocco(p piano, x, y int) {
 		return
 	}
 
-	supporto := creaPiano()
-	supporto.regole = p.regole
+	supporto := make(map[[2]int]string)
 
 	for _, pos := range blocco { // O(n)
-		pias, _ := p.piastrelle[pos]                                        // non può non trovarle più se l'ha trovata sopra nella bfs
-		supporto.piastrelle[pos] = &Piastrella{pias.colore, pias.intensita} // non devo passare il puntatore
+		pias, _ := p.piastrelle[pos] // non può non trovarle più se l'ha trovata sopra nella bfs
+		supporto[pos] = pias.colore
 	}
 
 	for _, pos := range blocco { // O(n*m)
-		//piano, x, y
-		propaga(supporto, pos[0], pos[1]) // se m = len(r)
+		for _, r := range *p.regole { // O(len(r))
+			coloriVicini := make(map[string]int)
+
+			for _, dir := range dirs {
+				vicina, ok := p.piastrelle[punto(pos[0]+dir[0], pos[1]+dir[1])]
+				if ok {
+					coloriVicini[vicina.colore] += 1
+				}
+			}
+
+			if r.applicabile(coloriVicini) {
+				supporto[pos] = r.risultato
+			}
+		}
 	}
 
-	for pos, pias := range supporto.piastrelle { // O(n)
-		p.piastrelle[pos] = pias
+	for pos, pias := range supporto { // O(n)
+		p.piastrelle[pos].colore = pias
 	}
 }
 

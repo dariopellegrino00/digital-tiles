@@ -1,6 +1,16 @@
+arancio 1
+blu 2
+arancio 1
+verde 2
+dario@BOOK-FAO924JFP8:~/digital-tiles$ go run main.go inputs/example5
+arancio 1
+blu 2
+arancio 1
+verde 2
+dario@BOOK-FAO924JFP8:~/digital-tiles$ go run main.go inputs/example1
 (
 l: 1 l 
-a: 2 b 1 c 1 k 
+a: 1 k 2 b 1 c 
 b: 1 a 3 c 
 )
 r 3
@@ -15,8 +25,8 @@ l 1
 b 12
 (
 a: 1 k 2 b 1 c 
-l: 1 l 
 b: 1 a 3 c 
+l: 1 l 
 )
 (
 0 0 r 5

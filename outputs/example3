@@ -1,9 +1,17 @@
 rosso 5
 blu 6
 (
-giallo: 2 blu 1 rosso 
-verde: 1 blu 2 rosso 
+giallo: 1 rosso 2 blu 
+verde: 2 rosso 1 blu 
 blu: 1 rosso 1 giallo 
 )
 20
-14
+12
+verde 5
+5
+blu 2
+(
+giallo: 2 blu 1 rosso 
+blu: 1 rosso 1 giallo 
+verde: 2 rosso 1 blu 
+)

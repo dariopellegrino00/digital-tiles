@@ -1,0 +1,11 @@
+C 0 0 rosso 1
+C 1 0 blu 2 
+C 0 1 arancio 1
+r arancio 1 blu
+r verde 2 arancio 
+P 0 0 
+? 0 0
+? 1 0 
+? 0 1
+p 1 0
+? 1 0
