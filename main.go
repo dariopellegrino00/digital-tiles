@@ -58,14 +58,6 @@ func (r Regola) applicabile(colori map[string]int) bool {
 	return true
 }
 
-// (utility per questione di leggibilità)
-// restituisce un puntatore alla piastrella in posizione x, y e false (no errore) se accesa,
-// nil e true altrimenti (o 0x0, 0x0 è il puntatore a nil)
-func (p piano) piastrella(x, y int) (*Piastrella, bool) {
-	ps, e := p.piastrelle[punto(x, y)]
-	return ps, e
-}
-
 // (utility per inesistenza di un punto in go)
 // restituisce un vettore di 2 posizioni (punto) contenente
 // le coordinate x e y
@@ -84,15 +76,15 @@ func colora(p piano, x int, y int, alpha string, i int) {
 }
 
 // spegne la piastrella se accesa, non fa niente altrimenti
-func spegni(p piano, x, y int) {
+func spegni(p piano, x int, y int) {
 	delete(p.piastrelle, punto(x, y))
 }
 
 // stampa in console lo stato di una piastrella nella forma "colore intensità"
 // e restituisce i due valore sottoforma di stringa e intero
 // non fa niente se la piastrella è spenta e restituisce una stringa vuota e zero
-func stato(p piano, x, y int) (string, int) {
-	piastrella, esiste := p.piastrella(x, y)
+func stato(p piano, x int, y int) (string, int) {
+	piastrella, esiste := p.piastrelle[punto(x, y)]
 	if esiste {
 		fmt.Print(piastrella)
 		return piastrella.colore, piastrella.intensita
@@ -101,8 +93,8 @@ func stato(p piano, x, y int) (string, int) {
 }
 
 // aggiunge una regola
-func regola(p piano, regola string) {
-	tokens := strings.Split(regola, " ")
+func regola(p piano, r string) {
+	tokens := strings.Split(r, " ")
 	condizione := make(map[string]int)
 	for i := 1; i < len(tokens)-1; i += 2 {
 		// assumendo input corretto
@@ -136,15 +128,15 @@ func bfsBlocco(p piano, x, y int, checkColore bool) [][2]int {
 	coda := [][2]int{start}
 	visitati[start] = true
 
-	// tot O(n^2) caso peggiore molto raro perchè deve sempre dover risolvere collissioni ad ogni accesso
+	// tot O(n*m) caso peggiore molto raro perchè deve sempre dover risolvere collissioni ad ogni accesso
 	// quindi mediamente O(n)
-	for len(coda) > 0 { //O(n) ripetizioni
+	for len(coda) > 0 { //O(n) ripetizioni n = numero di piastrele appartenenti al blocco
 		current := coda[0]
 		coda = coda[1:]
 
-		for _, dir := range dirs { // O(1) sono sempre 8 (possibili) vicini da controllare
+		for _, dir := range dirs { // O(1) sono sempre 8 (possibili) vicini da controllare e m = numero di elementi nella mappa
 			vicino := punto(current[0]+dir[0], current[1]+dir[1])
-			ps, esiste := p.piastrelle[vicino]                                               //O(n) caso peggiore molto raro ammortizzato a O(1)
+			ps, esiste := p.piastrelle[vicino]                                               //O(m) caso peggiore molto raro ammortizzato a O(1)
 			if esiste && (!checkColore || ps.colore == pstart.colore) && !visitati[vicino] { //O(n) caso peggiore molto raro ammortizzato a O(1)
 				visitati[vicino] = true
 				coda = append(coda, vicino)
@@ -152,7 +144,7 @@ func bfsBlocco(p piano, x, y int, checkColore bool) [][2]int {
 		}
 	}
 
-	for v := range visitati {
+	for v := range visitati { // O(n)
 		visita = append(visita, v)
 	}
 
@@ -219,11 +211,11 @@ func propagaBlocco(p piano, x, y int) {
 	supporto := make(map[[2]int]string)
 
 	for _, pos := range blocco { // O(n)
-		pias, _ := p.piastrelle[pos] // non può non trovarle più se l'ha trovata sopra nella bfs
+		pias, _ := p.piastrelle[pos]
 		supporto[pos] = pias.colore
 	}
 
-	for _, pos := range blocco { // O(n*m)
+	for _, pos := range blocco {
 		for _, r := range *p.regole { // O(len(r))
 			coloriVicini := make(map[string]int)
 
@@ -262,7 +254,7 @@ func pista(p piano, x, y int, s string) {
 	}
 
 	pista := [][2]int{punto(x, y)}
-	next := [2]int{x, y}
+	next := punto(x, y)
 
 	for _, d := range seq {
 		pos, _ := spostamento[d] // assumendo input corretto
