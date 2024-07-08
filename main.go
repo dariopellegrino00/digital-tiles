@@ -20,8 +20,14 @@ type piano struct {
 
 type Regola struct {
 	condizione map[string]int
-	risultato  string
-	consumo    int
+	/*
+		ordine serve per avere sempre lo stesso ordine di stampa
+		quando si stampano le regole, per possibili test, la mappa non garantisce di ciclare sempre nello stesso ordine
+		non serve un puntatore tanto non viene più modificato
+	*/
+	ordine    []string
+	risultato string
+	consumo   int
 }
 
 // le possibili direzioni prendibili a partire da una piastrella (o per raggiungere i possibili vicini)
@@ -30,7 +36,6 @@ var dirs = [][2]int{
 	{-1, -1}, {1, 1}, {-1, 1}, {1, -1}, // diagonali
 }
 
-// TODO: refactoring con funzione?
 var spostamento = map[string][2]int{ // simil funzione da punto cardinale a simil versore
 	"NN": {0, 1}, "NE": {1, 1}, "EE": {1, 0}, "SE": {1, -1},
 	"SS": {0, -1}, "SO": {-1, -1}, "OO": {-1, 0}, "NO": {-1, 1},
@@ -42,8 +47,9 @@ func (p Piastrella) String() string {
 
 func (r Regola) String() string {
 	s := r.risultato + ": "
-	for a, k := range r.condizione {
-		s += fmt.Sprintf("%d %s ", k, a)
+	for _, c := range r.ordine {
+		k, _ := r.condizione[c]
+		s += fmt.Sprintf("%d %s ", k, c)
 	}
 	return s
 }
@@ -96,11 +102,14 @@ func stato(p piano, x int, y int) (string, int) {
 func regola(p piano, r string) {
 	tokens := strings.Split(r, " ")
 	condizione := make(map[string]int)
+	ordine := make([]string, 0)
 	for i := 1; i < len(tokens)-1; i += 2 {
 		// assumendo input corretto
-		condizione[tokens[i+1]], _ = strconv.Atoi(tokens[i])
+		k, _ := strconv.Atoi(tokens[i])
+		condizione[tokens[i+1]] = k
+		ordine = append(ordine, tokens[i+1])
 	}
-	*p.regole = append(*(p.regole), &Regola{condizione: condizione, risultato: tokens[0]})
+	*p.regole = append(*(p.regole), &Regola{condizione: condizione, ordine: ordine, risultato: tokens[0]})
 }
 
 // stampa le regole di propagazione nell'ordine attuale
@@ -112,7 +121,6 @@ func stampa(p piano) {
 	fmt.Println(")")
 }
 
-//TODO creare struttura coda per chiarezza?? o se serve in altro successivamente
 //funzione Helper per fare la BFS che veniva riutilizzata spesso diminuendo di molto il codice ripetuto,
 //non cambia a livello di stime asintottiche rielaborare la visita
 // tempo ammortizzato O(n) con n = #piastrelle del blocco
@@ -164,13 +172,17 @@ func intensitaBlocco(p piano, blocco [][2]int) int {
 // restituisce l'intensità il blocco a cui appartiene la pistrella di posizione x,y
 // di posizione x,y se accessa, 0 se spenta
 func blocco(p piano, x, y int) int {
-	return intensitaBlocco(p, bfsBlocco(p, x, y, false))
+	intensita := intensitaBlocco(p, bfsBlocco(p, x, y, false))
+	fmt.Println(intensita)
+	return intensita
 }
 
 // restituisce l'intensità del blocco omogeneo a cui appartiene la pistrella
 // di posizione x,y se accessa, 0 se spenta
 func bloccoOmog(p piano, x, y int) int {
-	return intensitaBlocco(p, bfsBlocco(p, x, y, true))
+	intensita := intensitaBlocco(p, bfsBlocco(p, x, y, true))
+	fmt.Println(intensita)
+	return intensita
 }
 
 // propaga la prima formula compatibile nella piastrella x y, tempo O(len(r))
@@ -187,7 +199,6 @@ func propaga(p piano, x, y int) {
 
 		if r.applicabile(coloriVicini) {
 			ps, accesa := p.piastrelle[punto(x, y)]
-			// applica regola TODO funzione applica regola?
 			if !accesa {
 				colora(p, x, y, r.risultato, 1)
 			} else {
@@ -200,7 +211,6 @@ func propaga(p piano, x, y int) {
 
 }
 
-// TODO: valutare se è il modo più efficiente
 // propaga le regole nel blocco di appartenenda di piatrella in posizione (x, y), tempo O(n*m)
 func propagaBlocco(p piano, x, y int) {
 	blocco := bfsBlocco(p, x, y, false) // O(n)
@@ -278,9 +288,8 @@ func pista(p piano, x, y int, s string) {
 // a partire dal primo vertice s trova sempre il percorso minimo
 // verso gli archi v che esplora successivamente
 // restituisce la pista di lunghezza minima tra i due (numero archi)
-// TODO: tempo O(n + m) da calcolare (meglio di djkstra O(m log n))
 // la lunghezza della pista è data da il numero di piastrelle che la compongono
-// una pista da x y a x y è lunga 1 chiaramente
+// una pista da x y a x y è lunga 0 chiaramente
 func lung(p piano, x1 int, y1 int, x2 int, y2 int) int {
 	start := punto(x1, y1)
 	goal := punto(x2, y2)
@@ -289,6 +298,9 @@ func lung(p piano, x1 int, y1 int, x2 int, y2 int) int {
 	_, esiste2 := p.piastrelle[goal]
 	if !esiste1 || !esiste2 {
 		return -1
+	} else if start == goal {
+		fmt.Println(0)
+		return 0
 	}
 
 	visitati := make(map[[2]int]bool)
@@ -342,11 +354,11 @@ func esegui(p piano, s string) {
 	case "b":
 		x, _ := strconv.Atoi(tokens[1])
 		y, _ := strconv.Atoi(tokens[2])
-		println(blocco(p, x, y))
+		blocco(p, x, y)
 	case "B":
 		x, _ := strconv.Atoi(tokens[1])
 		y, _ := strconv.Atoi(tokens[2])
-		println(bloccoOmog(p, x, y))
+		bloccoOmog(p, x, y)
 	case "p":
 		x, _ := strconv.Atoi(tokens[1])
 		y, _ := strconv.Atoi(tokens[2])

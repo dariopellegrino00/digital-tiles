@@ -5,7 +5,7 @@ verde 7
 (
 rosso: 3 verde 
 giallo: 1 rosso 2 blu 
-verde: 1 blu 2 rosso 
+verde: 2 rosso 1 blu 
 blu: 1 rosso 1 giallo 
 arancio: 1 verde 2 blu 
 )
@@ -17,6 +17,6 @@ rosso 8
 giallo: 1 rosso 2 blu 
 verde: 2 rosso 1 blu 
 blu: 1 rosso 1 giallo 
-arancio: 2 blu 1 verde 
+arancio: 1 verde 2 blu 
 rosso: 3 verde 
 )

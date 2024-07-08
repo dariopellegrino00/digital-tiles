@@ -1,13 +1,3 @@
-arancio 1
-blu 2
-arancio 1
-verde 2
-dario@BOOK-FAO924JFP8:~/digital-tiles$ go run main.go inputs/example5
-arancio 1
-blu 2
-arancio 1
-verde 2
-dario@BOOK-FAO924JFP8:~/digital-tiles$ go run main.go inputs/example1
 (
 l: 1 l 
 a: 1 k 2 b 1 c 
