@@ -295,13 +295,10 @@ func lung(p piano, x1 int, y1 int, x2 int, y2 int) int {
 	_, esiste2 := p.piastrelle[goal]
 	if !esiste1 || !esiste2 {
 		return -1
-	} else if start == goal {
-		fmt.Println(0)
-		return 0
 	}
 
 	visitati := make(map[[2]int]bool)
-	coda := [][3]int{{x1, y1, 1}}
+	coda := [][3]int{{x1, y1, 0}}
 	visitati[start] = true
 
 	for len(coda) > 0 {
