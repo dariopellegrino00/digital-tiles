@@ -264,7 +264,6 @@ func pista(p piano, x, y int, s string) {
 
 	pista := [][2]int{punto(x, y)}
 	next := punto(x, y)
-
 	for _, d := range seq {
 		pos, _ := spostamento[d] // assumendo input corretto
 		next[0] = next[0] + pos[0]
@@ -273,14 +272,13 @@ func pista(p piano, x, y int, s string) {
 		if !ok {
 			return
 		}
-		pista = append(pista, pos)
+		pista = append(pista, next)
 	}
-
-	fmt.Println("(")
+	fmt.Println("[")
 	for _, v := range pista {
 		fmt.Print(v[0], v[1], p.piastrelle[v])
 	}
-	fmt.Println(")")
+	fmt.Println("]")
 }
 
 // utilizza bfs perchè bfs con pesi tutti uguali sugli archi (tutti 1)
