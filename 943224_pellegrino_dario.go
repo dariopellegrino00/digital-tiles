@@ -64,7 +64,7 @@ func (r Regola) applicabile(colori map[string]int) bool {
 	return true
 }
 
-// (utility per inesistenza di un punto in go)
+// utility
 // restituisce un vettore di 2 posizioni (punto) contenente
 // le coordinate x e y
 func punto(x, y int) [2]int {
@@ -123,7 +123,7 @@ func stampa(p piano) {
 
 //funzione Helper per fare la BFS che veniva riutilizzata spesso diminuendo di molto il codice ripetuto,
 //non cambia a livello di stime asintottiche rielaborare la visita
-// tempo ammortizzato O(n) con n = #piastrelle del blocco
+//tempo ammortizzato O(n) con n = #piastrelle del blocco
 func bfsBlocco(p piano, x, y int, checkColore bool) [][2]int {
 	start := punto(x, y)
 	pstart, esiste := p.piastrelle[start]
@@ -136,23 +136,22 @@ func bfsBlocco(p piano, x, y int, checkColore bool) [][2]int {
 	coda := [][2]int{start}
 	visitati[start] = true
 
-	// tot O(n*m) caso peggiore molto raro perchè deve sempre dover risolvere collissioni ad ogni accesso
-	// quindi mediamente O(n)
-	for len(coda) > 0 { //O(n) ripetizioni n = numero di piastrele appartenenti al blocco
+	// n ripetizioni
+	for len(coda) > 0 {
 		current := coda[0]
 		coda = coda[1:]
 
 		for _, dir := range dirs { // O(1) sono sempre 8 (possibili) vicini da controllare e m = numero di elementi nella mappa
 			vicino := punto(current[0]+dir[0], current[1]+dir[1])
-			ps, esiste := p.piastrelle[vicino]                                               //O(m) caso peggiore molto raro ammortizzato a O(1)
-			if esiste && (!checkColore || ps.colore == pstart.colore) && !visitati[vicino] { //O(n) caso peggiore molto raro ammortizzato a O(1)
+			ps, esiste := p.piastrelle[vicino] //O(m) caso peggiore molto raro ammortizzato a O(1)
+			if esiste && (!checkColore || ps.colore == pstart.colore) && !visitati[vicino] {
 				visitati[vicino] = true
 				coda = append(coda, vicino)
 			}
 		}
 	}
 
-	for v := range visitati { // O(n)
+	for v := range visitati { // n ripetizioni
 		visita = append(visita, v)
 	}
 
@@ -211,22 +210,22 @@ func propaga(p piano, x, y int) {
 
 }
 
-// propaga le regole nel blocco di appartenenda di piatrella in posizione (x, y), tempo O(n*m)
+// propaga le regole nel blocco di appartenenda di piatrella in posizione (x, y)
 func propagaBlocco(p piano, x, y int) {
-	blocco := bfsBlocco(p, x, y, false) // O(n)
+	blocco := bfsBlocco(p, x, y, false)
 	if len(blocco) == 0 {
 		return
 	}
 
 	supporto := make(map[[2]int]string)
 
-	for _, pos := range blocco { // O(n)
+	for _, pos := range blocco {
 		pias, _ := p.piastrelle[pos]
 		supporto[pos] = pias.colore
 	}
 
 	for _, pos := range blocco {
-		for _, r := range *p.regole { // O(len(r))
+		for _, r := range *p.regole {
 			coloriVicini := make(map[string]int)
 
 			for _, dir := range dirs {
@@ -242,7 +241,7 @@ func propagaBlocco(p piano, x, y int) {
 		}
 	}
 
-	for pos, pias := range supporto { // O(n)
+	for pos, pias := range supporto {
 		p.piastrelle[pos].colore = pias
 	}
 }
